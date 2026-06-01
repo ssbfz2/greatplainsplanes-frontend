@@ -328,7 +328,7 @@
 
       try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 30000);
+        const timeout = setTimeout(() => controller.abort(), 60000);
         const res = await fetch(`${API}/subscribe`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -369,6 +369,9 @@
     document.getElementById('zip').addEventListener('input', (e) => {
       e.target.value = e.target.value.replace(/\D/g, '').slice(0, 5);
     });
+
+    // Pre-warm the server on page load so it's ready when the form is submitted
+    fetch(`${API}/health`).catch(() => {});
   </script>
 </body>
 </html>
