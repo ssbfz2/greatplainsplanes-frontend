@@ -268,7 +268,12 @@
       </form>
 
       <div class="msg" id="msg" role="alert" aria-live="assertive" aria-atomic="true"></div>
-      <p class="fine-print">Kansas City metro area only during beta. No spam, ever. <a href="/privacy.html" style="color:#94a3b8;">Privacy policy</a></p>
+      <p class="fine-print" style="margin-top:12px;">
+        Kansas City metro area only during beta. No spam, ever. <a href="/privacy.html" style="color:#94a3b8;">Privacy policy</a>
+      </p>
+      <p style="text-align:center;margin-top:10px;">
+        <a id="yesterday-link" href="#" style="color:#475569;font-size:13px;">See yesterday's digest →</a>
+      </p>
     </div>
   </section>
 
@@ -307,7 +312,7 @@
 
   <section class="sample">
     <h2>What it looks like</h2>
-    <p>A taste of yesterday's digest.</p>
+    <p>A taste of yesterday's digest. <a id="full-digest-link" href="#" style="color:#38bdf8;">See the full thing →</a></p>
     <div class="sample-card">
       <div class="sample-header">Great Plains Planes &nbsp;·&nbsp; Kansas City Area</div>
       <div class="sample-title">Great Plains Planes</div>
@@ -398,6 +403,18 @@
 
     // Pre-warm the server on page load so it's ready when the form is submitted
     fetch(`${API}/health`).catch(() => {});
+
+    // Set yesterday's digest links
+    (function() {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const url = `https://digest.greatplainsplanes.com/digest_${y}-${m}-${day}.html`;
+      document.getElementById('yesterday-link').href = url;
+      document.getElementById('full-digest-link').href = url;
+    })();
   </script>
 </body>
 </html>
