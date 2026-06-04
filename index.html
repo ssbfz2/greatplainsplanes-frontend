@@ -307,6 +307,11 @@
       <h3>Special interest</h3>
       <p>Military, cargo, helicopters, medical flights, and watchlist aircraft flagged automatically.</p>
     </div>
+    <div class="feature">
+      <div class="icon">📊</div>
+      <h3>Aircraft census</h3>
+      <p>A full tally of every aircraft type and manufacturer that passed overhead that day.</p>
+    </div>
   </section>
 
   <section class="sample">
@@ -321,6 +326,11 @@
         <div class="sample-stat"><div class="val">45,000 ft</div><div class="lbl">Highest</div></div>
         <div class="sample-stat"><div class="val">482 kts</div><div class="lbl">Fastest</div></div>
         <div class="sample-stat"><div class="val">6.2 mi</div><div class="lbl">Closest</div></div>
+      </div>
+      <img id="sample-map" alt="Flight tracks over Kansas City, color-coded by altitude"
+           style="width:100%;display:block;border-radius:8px;border:1px solid #334155;margin-top:18px;">
+      <div style="color:#64748b;font-size:12px;margin-top:8px;text-align:center;">
+        Every flight tracked, plotted by altitude — one of several maps in each issue.
       </div>
     </div>
   </section>
@@ -422,6 +432,13 @@
       const url = `https://digest.greatplainsplanes.com/digest_${y}-${m}-${day}.html`;
       document.getElementById('yesterday-link').href = url;
       document.getElementById('full-digest-link').href = url;
+
+      // Show a real recent flight map in the "What it looks like" sample.
+      const smap = document.getElementById('sample-map');
+      if (smap) {
+        smap.src = `https://digest.greatplainsplanes.com/map_${y}-${m}-${day}.png`;
+        smap.onerror = () => { smap.style.display = 'none'; };  // hide gracefully if not yet available
+      }
     })();
   </script>
 </body>
