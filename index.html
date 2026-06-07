@@ -299,7 +299,7 @@
         Kansas City metro area only during beta &mdash; <a href="https://whatflewover.com" style="color:#38bdf8;">not in KC? join the waitlist &rarr;</a> No spam, ever. <a href="/privacy.html" style="color:#94a3b8;">Privacy policy</a>
       </p>
       <p style="text-align:center;margin-top:10px;">
-        <a id="yesterday-link" href="#" style="color:#475569;font-size:13px;">See yesterday's digest →</a>
+        <a id="yesterday-link" href="#" style="color:#475569;font-size:13px;">See the latest digest →</a>
       </p>
     </div>
   </section>
@@ -339,7 +339,7 @@
 
   <section class="sample">
     <h2>What it looks like</h2>
-    <p>A sample of what you'll get. <a id="full-digest-link" href="#" style="color:#38bdf8;">See yesterday's actual digest →</a></p>
+    <p>A sample of what you'll get. <a id="full-digest-link" href="#" style="color:#38bdf8;">See the latest actual digest →</a></p>
     <div class="sample-card">
       <div class="sample-header">Great Plains Planes &nbsp;·&nbsp; Kansas City Area</div>
       <div class="sample-title">Great Plains Planes</div>
@@ -445,23 +445,42 @@
     // Pre-warm the server on page load so it's ready when the form is submitted
     fetch(`${API}/health`).catch(() => {});
 
-    // Set yesterday's digest links
+    // Resolve the most recent AVAILABLE digest, then wire up the links + sample map.
+    // Robust to (1) the visitor's timezone — uses the Kansas City date, not the
+    // browser's local clock — and (2) days that aren't generated yet, by walking
+    // back day-by-day until a digest's assets actually exist on the CDN.
     (function() {
-      const d = new Date();
-      d.setDate(d.getDate() - 1);
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      const url = `https://digest.greatplainsplanes.com/digest_${y}-${m}-${day}.html`;
-      document.getElementById('yesterday-link').href = url;
-      document.getElementById('full-digest-link').href = url;
+      const CDN = 'https://digest.greatplainsplanes.com';
+      const yLink = document.getElementById('yesterday-link');
+      const fLink = document.getElementById('full-digest-link');
+      const smap  = document.getElementById('sample-map');
 
-      // Show a real recent flight map in the "What it looks like" sample.
-      const smap = document.getElementById('sample-map');
-      if (smap) {
-        smap.src = `https://digest.greatplainsplanes.com/map_${y}-${m}-${day}.png`;
-        smap.onerror = () => { smap.style.display = 'none'; };  // hide gracefully if not yet available
+      // Today in Kansas City (America/Chicago) as YYYY-MM-DD. en-CA formats as ISO.
+      const kcToday = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Chicago' }).format(new Date());
+      function shiftDate(iso, days) {
+        const [Y, M, D] = iso.split('-').map(Number);
+        const dt = new Date(Date.UTC(Y, M - 1, D));
+        dt.setUTCDate(dt.getUTCDate() + days);
+        return dt.toISOString().slice(0, 10);
       }
+      function apply(date) {
+        const url = `${CDN}/digest_${date}.html`;
+        if (yLink) yLink.href = url;
+        if (fLink) fLink.href = url;
+        if (smap) { smap.onerror = () => { smap.style.display = 'none'; }; smap.src = `${CDN}/map_${date}.png`; }
+      }
+      // Probe map_<date>.png (uploaded alongside each digest) to find the latest
+      // available day. Image loads aren't CORS-gated, unlike a cross-origin fetch
+      // to the digest subdomain, so this works without CORS headers on the CDN.
+      function probe(offset) {
+        if (offset > 8) { if (smap) smap.style.display = 'none'; return; }  // nothing in the last week
+        const date = shiftDate(kcToday, -offset);
+        const test = new Image();
+        test.onload  = () => apply(date);
+        test.onerror = () => probe(offset + 1);
+        test.src = `${CDN}/map_${date}.png`;
+      }
+      probe(1);  // start at KC-yesterday, walk back if needed
     })();
   </script>
 </body>
